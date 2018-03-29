@@ -34,7 +34,7 @@ def product_with_no_attributes(product_type, default_category):
         (increase_stock, 150, 80),
         (decrease_stock, 50, 30),
         (deallocate_stock, 100, 30),
-        (allocate_stock, 10, 1)))
+        (allocate_stock, 100, 130)))
 def test_stock_utils(
         product, func, expected_quanitty, expected_quant_allocated):
     variant = product.variants.first()
