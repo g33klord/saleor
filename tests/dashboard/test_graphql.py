@@ -362,7 +362,7 @@ def test_create_product(
 
 
 def test_update_product(
-    admin_client, default_category, non_default_category, product_in_stock):
+        admin_client, default_category, non_default_category, product):
     query = """
         mutation updateProduct(
             $productId: ID!,
@@ -408,7 +408,7 @@ def test_update_product(
                         }
                       }
     """
-    product_id = graphene.Node.to_global_id('Product', product_in_stock.pk)
+    product_id = graphene.Node.to_global_id('Product', product.pk)
     category_id = graphene.Node.to_global_id(
         'Category', non_default_category.pk)
     product_description = 'updated description'
@@ -439,7 +439,7 @@ def test_update_product(
     assert not data['product']['category']['name'] == default_category.name
 
 
-def test_delete_product(admin_client, product_in_stock):
+def test_delete_product(admin_client, product):
     query = """
         mutation DeleteProduct($id: ID!) {
             productDelete(id: $id) {
@@ -455,12 +455,12 @@ def test_delete_product(admin_client, product_in_stock):
             }
     """
     variables = json.dumps({
-        'id': graphene.Node.to_global_id('Product', product_in_stock.id)})
+        'id': graphene.Node.to_global_id('Product', product.id)})
     response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['productDelete']
-    assert data['product']['name'] == product_in_stock.name
-    with pytest.raises(product_in_stock._meta.model.DoesNotExist):
-        product_in_stock.refresh_from_db()
+    assert data['product']['name'] == product.name
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
