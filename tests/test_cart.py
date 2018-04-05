@@ -527,7 +527,7 @@ def test_view_cart_with_taxes(
         client, sale, product_in_stock, request_cart, vatlayer):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
     cart_line = request_cart.lines.first()
     assert response_cart_line['get_total'].tax.amount
@@ -552,9 +552,8 @@ def test_view_update_cart_quantity_with_taxes(
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
     response = client.post(
-        '/cart/update/%s/' % (variant.pk,),
-        {'quantity': 3},
-        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        reverse('cart:update-line', kwargs={'variant_id': variant.id}),
+        {'quantity': 3}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
     assert request_cart.quantity == 3
 
