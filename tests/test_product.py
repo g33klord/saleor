@@ -1,15 +1,18 @@
 import datetime
 import json
+from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-
 from django.urls import reverse
+from prices import Money, TaxedMoney
+
 from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
+from saleor.discount.models import Sale
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
-from saleor.product.models import Category, ProductImage
+from saleor.product.models import Category, Product, ProductImage
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock,
@@ -598,3 +601,27 @@ def test_create_product_thumbnails(
     create_product_thumbnails(product_image.pk)
     assert mock_create_thumbnails.called_once_with(
         product_image.pk, ProductImage, 'products')
+
+
+@pytest.mark.parametrize(
+    'product_price, include_taxes_in_prices, include_taxes, include_discounts,'
+    'product_net, product_gross', [
+        ('10.00', True, False, False, '10.00', '10.00'),
+        ('10.00', True, True, False, '10.00', '12.30')])
+def test_get_price_per_item(
+        settings, product_type, default_category, taxes, sale, product_price,
+        include_taxes_in_prices, include_taxes, include_discounts,
+        product_net, product_gross):
+    settings.INCLUDE_TAXES_IN_PRICES = include_taxes_in_prices
+    product = Product.objects.create(
+        product_type=product_type,
+        category=default_category,
+        price=Money(product_price, 'USD'))
+    variant = product.variants.create()
+
+    price = variant.get_price_per_item(
+        taxes=taxes if include_taxes else None,
+        discounts=Sale.objects.all() if include_discounts else None)
+
+    assert price == TaxedMoney(
+        net=Money(product_net, 'USD'), gross=Money(product_gross, 'USD'))
