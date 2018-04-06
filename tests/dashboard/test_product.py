@@ -34,7 +34,6 @@ def create_image():
 
 
 @pytest.mark.integration
-@pytest.mark.django_db
 def test_stock_record_update_works(admin_client, product_in_stock):
     variant = product_in_stock.variants.get()
     stock = variant.stock.order_by('-quantity_allocated').first()

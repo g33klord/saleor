@@ -14,7 +14,6 @@ def test_list_view(admin_client, collection):
     assert list(context['collections']) == [collection]
 
 
-@pytest.mark.django_db
 def test_collection_form_name():
     data = {'name': 'Test Collection', 'products': []}
     form = CollectionForm(data)
@@ -27,7 +26,6 @@ def test_collection_form_name():
     assert not invalid_form.is_valid()
 
 
-@pytest.mark.django_db
 def test_collection_form_with_products(product_in_stock):
     data = {'name': 'Test collection', 'products': [product_in_stock.id]}
     form = CollectionForm(data)
